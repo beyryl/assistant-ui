@@ -40,7 +40,19 @@ export const ensureBinding = (r: unknown) => {
   runtime.__internal_bindMethods?.();
   runtime.__isBound = true;
 
-  if (process.env["NODE_ENV"] !== "production") {
+  const nodeEnv =
+    typeof globalThis !== "undefined" &&
+    "process" in globalThis &&
+    (globalThis as { process?: { env?: Record<string, string | undefined> } })
+      .process?.env
+      ? (
+          globalThis as {
+            process?: { env?: Record<string, string | undefined> };
+          }
+        ).process?.env?.["NODE_ENV"]
+      : undefined;
+
+  if (nodeEnv !== "production") {
     debugVerifyPrototype(runtime, Object.getPrototypeOf(runtime));
   }
 };

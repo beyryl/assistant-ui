@@ -151,6 +151,18 @@ export function useToolInvocations({
   const ignoredToolIds = useRef<Set<string>>(new Set());
   const isInitialState = useRef(true);
 
+  const nodeEnv =
+    typeof globalThis !== "undefined" &&
+    "process" in globalThis &&
+    (globalThis as { process?: { env?: Record<string, string | undefined> } })
+      .process?.env
+      ? (
+          globalThis as {
+            process?: { env?: Record<string, string | undefined> };
+          }
+        ).process?.env?.["NODE_ENV"]
+      : undefined;
+
   useEffect(() => {
     const processMessages = (
       messages: readonly (typeof state.messages)[number][],
@@ -181,7 +193,7 @@ export function useToolInvocations({
 
               if (content.argsText !== lastState.argsText) {
                 if (lastState.argsComplete) {
-                  if (process.env["NODE_ENV"] !== "production") {
+                  if (nodeEnv !== "production") {
                     console.warn(
                       "argsText updated after controller was closed:",
                       {
@@ -265,7 +277,7 @@ export function useToolInvocations({
     if (isInitialState.current) {
       isInitialState.current = false;
     }
-  }, [state, controller]);
+  }, [state, controller, nodeEnv]);
 
   const abort = (): Promise<void> => {
     humanInputRef.current.forEach(({ reject }) => {
